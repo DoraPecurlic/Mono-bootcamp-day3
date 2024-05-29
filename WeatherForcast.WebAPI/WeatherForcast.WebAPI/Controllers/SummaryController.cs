@@ -14,8 +14,20 @@ namespace WeatherForcast.WebAPI.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        
 
+        [HttpGet(Name = "GetSummaries")]
+        public IActionResult GetSummaries()
+        {
+            try
+            {
+                return Ok(Summaries.ToArray());
+            }
+            catch
+            {
+                return BadRequest();
+            }
+            
+        }
 
         [HttpPost("InsertSummary", Name = "InsertSummary")]
         public IActionResult InsertSummary(string summary)
