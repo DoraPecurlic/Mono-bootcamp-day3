@@ -9,10 +9,10 @@ namespace WeatherForcast.WebAPI.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-    
+
         private static List<WeatherForecast> forecasts = new List<WeatherForecast>();
 
-        [HttpPost("GenerateWeatherForecast", Name ="GenerateWeatherForecast")]
+        [HttpPost("GenerateWeatherForecast", Name = "GenerateWeatherForecast")]
         public async Task<HttpResponseMessage> GenerateWeatherForecast()
         {
             try
@@ -32,24 +32,27 @@ namespace WeatherForcast.WebAPI.Controllers
             {
                 return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest));
             }
-            
-            
+
+
         }
 
         [HttpGet(Name = "GetWeatherForecasts")]
         public IActionResult GetWeatherForecasts()
         {
-            try {
+            try
+            {
                 List<string> weatherForcasts = new List<string>();
                 foreach (var forecast in forecasts)
                 {
                     weatherForcasts.Add($"Date:{forecast.Date}, Temperature: {forecast.TemperatureC}, Summary: {forecast.Summary}");
                 }
                 return Ok(weatherForcasts.ToArray());
-            }catch{
+            }
+            catch
+            {
                 return BadRequest();
             }
-            
+
         }
 
 
@@ -69,16 +72,17 @@ namespace WeatherForcast.WebAPI.Controllers
                 int indexToRemove = -1;
                 DateOnly deleteDate = DateOnly.Parse(date);
 
-                for (int i = 0; i < forecasts.Count ;  i++)
+                for (int i = 0; i < forecasts.Count; i++)
                 {
-                    if(forecasts[i].Date == deleteDate)
+                    if (forecasts[i].Date == deleteDate)
                     {
                         indexToRemove = i;
                         break;
                     }
                 }
 
-                if (indexToRemove != -1) { 
+                if (indexToRemove != -1)
+                {
                     forecasts.RemoveAt(indexToRemove);
 
                     return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
@@ -95,8 +99,28 @@ namespace WeatherForcast.WebAPI.Controllers
 
         }
 
+        [HttpPut(Name = "UpdateWeatherOnDate")]
+        public async Task<HttpResponseMessage> UpdateWeatherOnDate([FromQuery] string date, [FromQuery] int newTemperature)
+        {
+            try
+            {
+                DateOnly updateDate = DateOnly.Parse(date);
 
-
+                for (int i = 0; i < forecasts.Count; i++)
+                {
+                    if (forecasts[i].Date == updateDate)
+                    {
+                        forecasts[i].TemperatureC = newTemperature;
+                        break;
+                    }
+                }
+                return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            }
+            catch
+            {
+                return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest));
+            }
+        }
     }
 }
 
