@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace WeatherForcast.WebAPI.Controllers
 {
@@ -7,13 +8,26 @@ namespace WeatherForcast.WebAPI.Controllers
     [ApiController]
     public class SummaryController : ControllerBase
     {
+        
         public static List<string> Summaries = new List<string>
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        
 
+        [HttpGet(Name = "GetSummaries")]
+        public IActionResult GetSummaries()
+        {
+            try
+            {
+                return Ok(Summaries.ToArray());
+            }
+            catch
+            {
+                return BadRequest();
+            }
+            
+        }
 
         [HttpPost("InsertSummary", Name = "InsertSummary")]
         public IActionResult InsertSummary(string summary)
@@ -42,7 +56,31 @@ namespace WeatherForcast.WebAPI.Controllers
             return StatusCode(200, "Summary successfully deleted.");
         }
 
-
+        [HttpPut(Name = "UpdateSummary")]
+        public async Task<HttpResponseMessage> updateSummary(string existingSummary, string updatedSummary)
+        {
+            try
+            {
+                if (Summaries.Contains(existingSummary))
+                {
+                    for (int i = 0; i < Summaries.Count; i++) {
+                        if (Summaries[i] == existingSummary) {
+                            Summaries[i] = updatedSummary;
+                        }
+                    }
+                    return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+                }
+                else
+                {
+                    return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+                }
+               
+            }
+            catch
+            {
+                return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest));
+            }
+        }
 
     }
 }
