@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System;
+using System.Net;
 
 namespace WeatherForcast.WebAPI.Controllers
 {
@@ -6,10 +9,49 @@ namespace WeatherForcast.WebAPI.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static List<string> Summaries = new List<string>
+    
+        private static List<WeatherForecast> forecasts = new List<WeatherForecast>();
+
+        [HttpPost("GenerateWeatherForecast", Name ="GenerateWeatherForecast")]
+        public async Task<HttpResponseMessage> GenerateWeatherForecast()
         {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+            try
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    DateOnly date = DateOnly.FromDateTime(DateTime.Now.AddDays(i));
+                    int temperatureC = Random.Shared.Next(-20, 55);
+                    string summary = SummaryController.Summaries[Random.Shared.Next(SummaryController.Summaries.Count)];
+
+                    forecasts.Add(new WeatherForecast(date, temperatureC, summary));
+                }
+
+                return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+            }
+            catch
+            {
+                return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest));
+            }
+            
+            
+        }
+
+        [HttpGet(Name = "GetWeatherForecasts")]
+        public IActionResult GetWeatherForecasts()
+        {
+            try {
+                List<string> weatherForcasts = new List<string>();
+                foreach (var forecast in forecasts)
+                {
+                    weatherForcasts.Add($"Date:{forecast.Date}, Temperature: {forecast.TemperatureC}, Summary: {forecast.Summary}");
+                }
+                return Ok(weatherForcasts.ToArray());
+            }catch{
+                return BadRequest();
+            }
+            
+        }
+
 
         private readonly ILogger<WeatherForecastController> _logger;
 
@@ -18,31 +60,44 @@ namespace WeatherForcast.WebAPI.Controllers
             _logger = logger;
         }
 
-        [HttpGet(Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> Get()
-        {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Count)]
-            })
-            .ToArray();
-        }
 
-
-        [HttpPost(Name = "InsertSummary")]
-        public IActionResult InsertSummary(string summary)
+        [HttpDelete(Name = "DeleteWeatherOnDate")]
+        public async Task<HttpResponseMessage> DeleteWeatherOnDate([FromQuery] string date)
         {
-            if (Summaries.Contains(summary))
+            try
             {
-                return StatusCode(409, "Summary already exists.");
+                int indexToRemove = -1;
+                DateOnly deleteDate = DateOnly.Parse(date);
+
+                for (int i = 0; i < forecasts.Count ;  i++)
+                {
+                    if(forecasts[i].Date == deleteDate)
+                    {
+                        indexToRemove = i;
+                        break;
+                    }
+                }
+
+                if (indexToRemove != -1) { 
+                    forecasts.RemoveAt(indexToRemove);
+
+                    return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+                }
+
+                return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound));
+
             }
-           
-            Summaries.Add(summary);
-            return StatusCode(200, "Summary successfully added.");
-            
+            catch (HttpRequestException exception)
+            {
+                return await Task.FromResult(new HttpResponseMessage(HttpStatusCode.BadRequest));
+            }
+
+
         }
+
+
 
     }
 }
+
+
