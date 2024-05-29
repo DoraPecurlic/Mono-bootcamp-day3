@@ -44,5 +44,21 @@ namespace WeatherForcast.WebAPI.Controllers
             
         }
 
+
+        [HttpDelete(Name = "DeleteSummary")]
+        public IActionResult DeleteSummary(string summary)
+        {
+
+            if (!Summaries.Contains(summary))
+            {
+                return StatusCode(400, "Summary doesnt exists. Cannot delet summary that does not exist.");
+            }
+
+            Summaries.RemoveAt(Summaries.IndexOf(summary));
+            return StatusCode(200, "Summary successfully deleted.");
+        }
+
     }
 }
+
+
