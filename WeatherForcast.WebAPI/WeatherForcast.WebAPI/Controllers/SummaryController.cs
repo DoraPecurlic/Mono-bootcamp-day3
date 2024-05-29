@@ -12,7 +12,7 @@ namespace WeatherForcast.WebAPI.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-
+        
 
 
         [HttpPost("InsertSummary", Name = "InsertSummary")]
